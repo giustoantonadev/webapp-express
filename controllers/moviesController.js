@@ -1,5 +1,6 @@
 const db = require('../database/db');
 
+// Index
 function index(req, res) {
     const sql = 'SELECT * FROM movies';
     db.query(sql, (err, results) => {
@@ -11,6 +12,7 @@ function index(req, res) {
     });
 }
 
+// Show
 function show(req, res) {
     const movieId = req.params.id;
     const sql = 'SELECT * FROM movies WHERE id = ?';
