@@ -1,11 +1,13 @@
 const express = require('express');
-const app = express();
-const db = require('./database/db');
 require('dotenv').config();
+const db = require('./database/db');
 
-app.get('/', (req, res) => {
-    res.send('Express funziona!');
-});
+const app = express();
+
+const moviesRouter = require('./routes/movies');
+
+app.use('/movies', moviesRouter);
+
 
 app.listen(3000, () => {
     console.log("server avviato sulla porta 3000");
