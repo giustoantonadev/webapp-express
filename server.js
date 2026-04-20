@@ -1,5 +1,7 @@
 const express = require('express');
 const app = express();
+const db = require('./database/db');
+require('dotenv').config();
 
 app.get('/', (req, res) => {
     res.send('Express funziona!');
