@@ -1,21 +1,21 @@
 const db = require('../database/db');
 
 function create(req, res) {
-    const { movie_id, author, rating, comment} =req.body;
+    const { movie_id, author, rating, content } = req.body;
 
-    if(!movie_id || !author || !rating || !comment) {
-        return res.status(400),json({error: 'Tutti i campi sono obbligatori'})
+    if (!movie_id || !author || !rating || !content) {
+        return res.status(400), json({ error: 'Tutti i campi sono obbligatori' })
     }
 
     const sql = `
-    INSERT INTO reviews (movie_id, author, rating, comment)
+    INSERT INTO reviews (movie_id, author, rating, content)
     VALUES (?, ?, ?, ?)
     `;
 
-    db.query(sql, [movie_id, author, rating, comment], (err, result)=>{
-        if(err) {
+    db.query(sql, [movie_id, author, rating, content], (err, result) => {
+        if (err) {
             console.error('Errore inserimento recensione:', err);
-            return res.status(500).json({error: 'Errore nel server'});
+            return res.status(500).json({ error: 'Errore nel server' });
         }
 
         res.json({
@@ -25,7 +25,7 @@ function create(req, res) {
                 movie_id,
                 author,
                 rating,
-                comment
+                content
             }
         })
     })
