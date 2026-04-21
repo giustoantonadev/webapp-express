@@ -12,6 +12,7 @@ const moviesRouter = require('./routes/movies');
 const notFound = require('./middleware/notFound');
 const errorHandler = require('./middleware/errorHandler');
 
+app.use('/reviews', require('./routes/reviews'))
 app.use('/movies', moviesRouter);
 
 app.use(express.static('public'));
