@@ -15,10 +15,13 @@ function index(req, res) {
 // Show
 function show(req, res) {
     const movieId = req.params.id;
-    const sql = 'SELECT * FROM movies WHERE id = ?';
-    const sqlReviews = 'SELECT * FROM reviews WHERE movie_id = ?';
 
-    db.query(sql, [movieId], (err, movieResults) => {
+    const sqlMovie = 'SELECT * FROM movies WHERE id = ?';
+    const sqlReviews = 'SELECT * FROM reviews WHERE movie_id = ?';
+    const sqlAvg = 'SELECT AVG(rating) AS avg_rating FROM reviews WHERE movie_id = ?';
+
+    // 1) Recupero film
+    db.query(sqlMovie, [movieId], (err, movieResults) => {
         if (err) {
             console.error('Errore nella query del film:', err);
             return res.status(500).json({ error: 'Errore nel server' });
@@ -27,15 +30,32 @@ function show(req, res) {
             return res.status(404).json({ error: 'Film non trovato' });
         }
 
-        db.query(sqlReviews, [movieId], (err, reviewResults) => {
+        const movie = movieResults[0];
+
+        // 2) Recupero media voto
+        db.query(sqlAvg, [movieId], (err, avgResults) => {
             if (err) {
-                console.error('Errore nella query delle recensioni:', err);
+                console.error('Errore nella query della media voto:', err);
                 return res.status(500).json({ error: 'Errore nel server' });
             }
-            res.json({ movie: movieResults[0], reviews: reviewResults });
+
+            movie.avg_rating = avgResults[0].avg_rating
+                ? Number(avgResults[0].avg_rating)
+                : null;
+
+
+            // 3) Recupero recensioni
+            db.query(sqlReviews, [movieId], (err, reviewResults) => {
+                if (err) {
+                    console.error('Errore nella query delle recensioni:', err);
+                    return res.status(500).json({ error: 'Errore nel server' });
+                }
+
+                res.json({ movie, reviews: reviewResults });
+            });
         });
     });
-
 }
+
 
 module.exports = { index, show };
