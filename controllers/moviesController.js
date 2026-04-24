@@ -1,61 +1,65 @@
 const db = require('../database/db');
 
-// Index
+// INDEX
 function index(req, res) {
-    const sql = 'SELECT * FROM movies';
+    const sql = "SELECT * FROM movies";
+
     db.query(sql, (err, results) => {
         if (err) {
-            console.error('Errore nella query:', err);
-            return res.status(500).json({ error: 'Errore nel server' });
+            console.error("Errore DB:", err);
+            return res.status(500).json({ error: "Errore nel database" });
         }
         res.json(results);
     });
 }
 
-// Show
+// SHOW
 function show(req, res) {
-    const movieId = req.params.id;
+    const id = req.params.id;
+    const sql = "SELECT * FROM movies WHERE id = ?";
 
-    const sqlMovie = 'SELECT * FROM movies WHERE id = ?';
-    const sqlReviews = 'SELECT * FROM reviews WHERE movie_id = ?';
-    const sqlAvg = 'SELECT AVG(rating) AS avg_rating FROM reviews WHERE movie_id = ?';
-
-    // 1) Recupero film
-    db.query(sqlMovie, [movieId], (err, movieResults) => {
+    db.query(sql, [id], (err, results) => {
         if (err) {
-            console.error('Errore nella query del film:', err);
-            return res.status(500).json({ error: 'Errore nel server' });
-        }
-        if (movieResults.length === 0) {
-            return res.status(404).json({ error: 'Film non trovato' });
+            console.error("Errore DB:", err);
+            return res.status(500).json({ error: "Errore nel database" });
         }
 
-        const movie = movieResults[0];
+        if (results.length === 0) {
+            return res.status(404).json({ error: "Film non trovato" });
+        }
 
-        // 2) Recupero media voto
-        db.query(sqlAvg, [movieId], (err, avgResults) => {
-            if (err) {
-                console.error('Errore nella query della media voto:', err);
-                return res.status(500).json({ error: 'Errore nel server' });
-            }
+        res.json(results[0]);
+    });
+}
 
-            movie.avg_rating = avgResults[0].avg_rating
-                ? Number(avgResults[0].avg_rating)
-                : null;
+// CREATE (con upload locale)
+function create(req, res) {
+    const { title, year, director, genre, description } = req.body;
 
+    // Se manca il file → errore
+    if (!req.file) {
+        return res.status(400).json({ error: "Poster mancante" });
+    }
 
-            // 3) Recupero recensioni
-            db.query(sqlReviews, [movieId], (err, reviewResults) => {
-                if (err) {
-                    console.error('Errore nella query delle recensioni:', err);
-                    return res.status(500).json({ error: 'Errore nel server' });
-                }
+    // Percorso da salvare nel DB
+    const posterPath = "/images/posters/" + req.file.filename;
 
-                res.json({ movie, reviews: reviewResults });
-            });
+    const sql = `
+        INSERT INTO movies (title, year, director, genre, description, poster)
+        VALUES (?, ?, ?, ?, ?, ?)
+    `;
+
+    db.query(sql, [title, year, director, genre, description, posterPath], (err, result) => {
+        if (err) {
+            console.error("Errore DB:", err);
+            return res.status(500).json({ error: "Errore nel database" });
+        }
+
+        res.json({
+            message: "Film aggiunto con successo",
+            id: result.insertId
         });
     });
 }
 
-
-module.exports = { index, show };
+module.exports = { index, show, create };
