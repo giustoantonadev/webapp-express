@@ -15,22 +15,31 @@ function index(req, res) {
 
 // SHOW
 function show(req, res) {
-    const id = req.params.id;
-    const sql = "SELECT * FROM movies WHERE id = ?";
+    const movieId = req.params.id;
 
-    db.query(sql, [id], (err, results) => {
-        if (err) {
-            console.error("Errore DB:", err);
-            return res.status(500).json({ error: "Errore nel database" });
-        }
+    const sqlMovie = "SELECT * FROM movies WHERE id = ?";
+    const sqlReviews = "SELECT * FROM reviews WHERE movie_id = ?";
 
-        if (results.length === 0) {
+    db.query(sqlMovie, [movieId], (err, movieResults) => {
+        if (err) return res.status(500).json({ error: "Errore DB" });
+
+        if (movieResults.length === 0)
             return res.status(404).json({ error: "Film non trovato" });
-        }
 
-        res.json(results[0]);
+        const movie = movieResults[0];
+
+        db.query(sqlReviews, [movieId], (err, reviewResults) => {
+            if (err) return res.status(500).json({ error: "Errore DB recensioni" });
+
+            res.json({
+                movie: movie,
+                reviews: reviewResults
+            });
+        });
     });
 }
+
+
 
 // CREATE (con upload locale)
 function create(req, res) {
